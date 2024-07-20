@@ -1,0 +1,13 @@
+FROM python:3.9-buster
+
+# install debian packages
+RUN apt-get update && \
+    apt-get install -y build-essential python-dev libssl-dev
+
+# install python packages
+COPY requirements.txt /app/
+RUN pip install --upgrade pip && \
+    pip install -r /app/requirements.txt
+RUN touch /tmp/healthy
+
+WORKDIR /app

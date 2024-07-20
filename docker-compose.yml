@@ -1,0 +1,103 @@
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: ./deploy/api/Dockerfile
+    image: ${APP_CODE}-api:0.1.0
+    platform: linux/amd64
+    container_name: ${APP_CODE}-api
+    command: ["/start-reload.sh"]
+    ports:
+      - "8080:80"
+    environment:
+      - APP_CODE=${APP_CODE}
+      - APP_MODULE=src.api.main:api
+      - ENV=${ENV}
+      - DB_HOST=${DB_CONTAINER_HOST}
+      - DB_APP_PWD=${DB_APP_PWD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_CONTAINER_PORT}
+      - REDIS_HOST=${APP_CODE}-redis
+      - REDIS_PORT=${REDIS_CONTAINER_PORT}
+      - API_STATIC_DIR=${API_STATIC_DIR}
+      - TZ=GMT
+    volumes:
+      - ./src/api:/app/src/api:rw
+      - ./src/helpers:/app/src/helpers:rw
+      - ./src/jobs:/app/src/jobs:rw
+    networks:
+      - "${APP_CODE}net"
+
+  db-deploy:
+    build:
+      context: .
+      dockerfile: ./deploy/db-deploy/Dockerfile
+    image: ${APP_CODE}-db-deploy:latest
+    platform: linux/amd64
+    container_name: "${APP_CODE}-db-deploy"
+    environment:
+      - APP_CODE=${APP_CODE}
+      - ENV=${ENV}
+      - DB_CONTAINER_PORT=${DB_CONTAINER_PORT}
+      - DB_ADMIN_PWD=${DB_ADMIN_PWD}
+      - DB_DATA_PWD=${DB_DATA_PWD}
+      - DB_APP_PWD=${DB_APP_PWD}
+      - TZ=GMT
+    depends_on:
+      - postgres
+    networks:
+      - "${APP_CODE}net"
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: "${APP_CODE}-postgres"
+    ports:
+      - "${DB_HOST_PORT}:${DB_CONTAINER_PORT}"
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_ADMIN_USER}
+      - POSTGRES_PASSWORD=${DB_ADMIN_PWD}
+      - TZ=GMT
+    networks:
+      - "${APP_CODE}net"
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${APP_CODE}-redis
+    environment:
+      - TZ=GMT
+    ports:
+      - "${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}"
+    networks:
+      - "${APP_CODE}net"
+
+  worker:
+    build:
+      context: .
+      dockerfile: ./deploy/worker/Dockerfile
+    image: ${APP_CODE}-worker:latest
+    container_name: ${APP_CODE}-worker
+    entrypoint: bash -c "cd /app && arq src.helpers.worker.WorkerSettings --watch /app"
+    environment:
+      - APP_CODE=${APP_CODE}
+      - ENV=${ENV}
+      - REDIS_HOST=${APP_CODE}-redis
+      - REDIS_PORT=${REDIS_CONTAINER_PORT}
+      - DB_HOST=${DB_CONTAINER_HOST}
+      - DB_DATA_PWD=${DB_DATA_PWD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_CONTAINER_PORT}
+      - TZ=GMT
+    depends_on:
+      - redis
+    links:
+      - redis
+    volumes:
+      - ./src/helpers:/app/src/helpers:rw
+      - ./src/jobs:/app/src/jobs:rw
+    networks:
+      - "${APP_CODE}net"
+
+networks:
+  aservnet:

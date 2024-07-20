@@ -1,0 +1,10 @@
+bandit
+black
+coverage
+httpx
+pylint
+pycodestyle
+pytest
+pytest-asyncio
+safety
+tox

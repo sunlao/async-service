@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+ 
+<html>
+ 
+<head>
+    <title>
+        Hello Service Static Page
+    </title>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css" />
+    <link href='https://fonts.googleapis.com/css?family=Exo 2' rel='stylesheet'>
+    <link href='https://fonts.googleapis.com/css?family=Alegreya Sans' rel='stylesheet'>
+</head>
+ 
+<body>
+    <h1>
+        <div class="logoDiv">
+            <img src="/static/logo.png" id="logoImg">
+        </div>
+        Hello Service
+    </h1>
+    <div class="subTitle">
+        <p>
+            Get the status of your jobs!
+        </p>
+    </div>
+    <div class="table">
+        <table>
+            {{ table | safe }}        
+        </table>
+    </div>
+</body>
+<footer>
+    <div class="footerText">
+        <p>Async Service<br>
+            ©Hello World Media, LP. All rights reserved</p>
+    </div>
+</footer>
+</html>

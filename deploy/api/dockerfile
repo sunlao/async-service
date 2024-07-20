@@ -1,0 +1,8 @@
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9
+
+# install python packages
+COPY requirements.txt /app/
+COPY VERSION /app/VERSION
+RUN pip install --upgrade pip && \
+    pip install -r /app/requirements.txt
+RUN touch /tmp/healthy
