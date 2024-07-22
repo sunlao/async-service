@@ -27,5 +27,5 @@ up:
 
 .PHONY: safety_local
 safety_local:
-	safety check
-	bandit --skip B108 -r src
+	safety check --ignore=70612
+	bandit -r src

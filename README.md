@@ -8,6 +8,8 @@ When submitting jobs via an API, it is the clients responsibility to create a un
 
 By default this template repo will only save redis keys for 4 hour to maintain sane use of local resources. By design not all tox test will pass after the keys expire. Execute `make down` & `make up` again to refresh when wanting tests to pass and the containers have been up for greater than 4 hours. When using the repo as a template decide how long the keys should be kept for the service and how to manage that in production. Cron DB keys will be deleted every hour via a delete cron job included as part of the service by default.
 
+![engineering-diagram](docs/engineering_diagram.png)
+
 ## Prerequisites
 
 Review [Local Development](https://github.com/sunlao/async-service/wiki) Mac Pre-Req and Virtual Environments:
