@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 
 class Secrets:
     def _local_db_secrets(self, p_user_context: str) -> None:
-        load_dotenv()
+        if getenv("ENV", "dev") == "dev":
+            load_dotenv()
         return {
             "HOST": environ["DB_HOST"],
             "USER": f"{environ['APP_CODE']}_{p_user_context.value}".lower(),
@@ -16,6 +17,6 @@ class Secrets:
         }
 
     def db(self, p_user_context: str):
-        if getenv("ENV", "false") == "test":
+        if getenv("ENV", "false") in ["dev", "github"]:
             return self._local_db_secrets(p_user_context)
         return None
