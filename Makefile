@@ -27,7 +27,7 @@ pip_runner:
 
 .PHONY: safety
 safety:
-	safety check -r requirements.txt
+	safety check -r requirements.txt --ignore=70612 
 	docker run --rm aserv-worker /bin/bash -c "pip install safety && safety check --ignore=70612"
 	docker run --rm aserv-api /bin/bash -c "pip install safety && safety check --ignore=70612"
 	bandit -r src
