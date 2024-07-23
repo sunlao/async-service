@@ -2,7 +2,7 @@ name: pr-dev
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
-  
+
 on:
   pull_request:
     paths-ignore:
@@ -103,4 +103,4 @@ jobs:
 
       - name: Deploy Pages
         id: deployment
-        uses: actions/deploy-pages@v1
+        uses: actions/deploy-pages@v1          
