@@ -90,7 +90,7 @@ jobs:
           REDIS_HOST: localhost
           REDIS_PORT: 6378
 
-      - name: Security
+      - name: Safety Check
         run: make safety
 
       - name: Setup Pages
