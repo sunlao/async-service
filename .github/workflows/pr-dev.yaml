@@ -48,9 +48,8 @@ jobs:
         with:
           ref: ${{ steps.extract_branch.outputs.branch }}
 
-      - name: link gtar
-        shell: bash
-        run: echo "ln -s /bin/tar /bin/gtar"
+      - name: brew gtar
+        run: brew install gnu-tar
 
       - name: pip runner
         run: make pip_runner
