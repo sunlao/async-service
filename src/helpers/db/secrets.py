@@ -20,6 +20,7 @@ class Secrets:
     def db(self, p_user_context: str):
         if getenv("ENV", "false") in ["test", "github"]:
             secrets = self._local_db_secrets(p_user_context)
+            print(f"secrets: {secrets}")
             safe_secrets = {k: v for k, v in secrets.items() if k != "PASSWORD"}
             debug("safe_secrets: %s", safe_secrets)
             return secrets
