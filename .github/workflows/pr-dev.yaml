@@ -1,7 +1,4 @@
 name: pr-dev
-concurrency:
-  group: Default
-  cancel-in-progress: false
 
 on:
   pull_request:
@@ -37,7 +34,7 @@ jobs:
       REDIS_HOST_PORT: 6378
       REDIS_CONTAINER_PORT: 6379  
     timeout-minutes: 10
-    runs-on: [self-hosted, macOS, X64]
+    runs-on: self-hosted
 
     steps:
 
