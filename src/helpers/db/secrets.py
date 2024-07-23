@@ -1,11 +1,12 @@
 from os import getenv
 from os import environ
+from logging import debug
 from dotenv import load_dotenv
 
 
 class Secrets:
     def _local_db_secrets(self, p_user_context: str) -> None:
-        if getenv("ENV", "dev") == "dev":
+        if getenv("ENV", "false") == "test":
             load_dotenv()
         return {
             "HOST": environ["DB_HOST"],
@@ -17,6 +18,9 @@ class Secrets:
         }
 
     def db(self, p_user_context: str):
-        if getenv("ENV", "false") in ["dev", "github"]:
-            return self._local_db_secrets(p_user_context)
+        if getenv("ENV", "false") in ["test", "github"]:
+            secrets = self._local_db_secrets(p_user_context)
+            safe_secrets = {k: v for k, v in secrets.items() if k != "PASSWORD"}
+            debug("safe_secrets: %s", safe_secrets)
+            return secrets
         return None
