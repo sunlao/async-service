@@ -2,6 +2,7 @@ anybadge
 bandit
 black
 coverage
+coverage-badge
 httpx
 pylint
 pycodestyle
