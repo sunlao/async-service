@@ -48,6 +48,10 @@ jobs:
         with:
           ref: ${{ steps.extract_branch.outputs.branch }}
 
+      - name: Install gtar
+        shell: bash
+        run: echo "brew install gnu-tar"
+
       - name: pip runner
         run: make pip_runner
 
