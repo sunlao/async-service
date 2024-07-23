@@ -22,17 +22,17 @@ jobs:
       API_STATIC_DIR: /app/src/api/static
       APP_CODE: aserv
       ENV: github
-      DB_ADMIN_PWD: $DB_ADMIN_PWD
+      DB_ADMIN_PWD: ${{ secrets.DB_ADMIN_PWD }}
       DB_ADMIN_USER: aserv_admin
-      DB_APP_PWD: $DB_APP_PWD
+      DB_APP_PWD: ${{ secrets.DB_APP_PWD }}
       DB_CONTAINER_HOST: aserv-postgres
       DB_CONTAINER_PORT: 5432
-      DB_DATA_PWD: $DB_DATA_PWD
+      DB_DATA_PWD: ${{ secrets.DB_DATA_PWD }}
       DB_HOST_PORT: 5431
       DB_NAME: db_aserv
       REDIS_HOST: aserv-redis
       REDIS_HOST_PORT: 6378
-      REDIS_CONTAINER_PORT: 6379  
+      REDIS_CONTAINER_PORT: 6379
     timeout-minutes: 10
     runs-on: self-hosted
 
