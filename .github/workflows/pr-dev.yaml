@@ -1,5 +1,8 @@
 name: pr-dev
-
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+  
 on:
   pull_request:
     paths-ignore:
