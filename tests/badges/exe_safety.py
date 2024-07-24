@@ -6,4 +6,4 @@ path.insert(0, getcwd())
 # pylint: disable=C0413
 from tests.badges.badges import Badges  # nopep8
 
-Badges().exe_security()
+Badges().exe_safety()

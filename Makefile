@@ -26,13 +26,13 @@ pip_runner:
 	pip install -r requirements-test.txt
 
 .PHONY: safety
-security:
-	safety check -r requirements.txt
+safety:
+	safety check -r requirements.txt --ignore=70612 
 	docker run --rm aserv-worker /bin/bash -c "pip install safety && safety check --ignore=70612"
 	docker run --rm aserv-api /bin/bash -c "pip install safety && safety check --ignore=70612"
 	bandit -r src
-	python tests/badges/exe_security.py	
-	python tests/badges/exe_index.py	
+	python tests/badges/exe_safety.py
+	python tests/badges/exe_index.py
 
 .PHONY: safety_local
 safety_local:

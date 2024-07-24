@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 def version_app():
-    if getenv("TOX_FLAG", "False") == "True":
+    if getenv("HOST_FLAG", "False") == "True":
         directory = Path(__file__).parents[3]
         path = f"{directory}/VERSION"
     else:

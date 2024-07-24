@@ -1,5 +1,13 @@
 # async-service
 
+![CodeFormat](https://sunlao.github.io/async-service/black.svg)
+![pylint](https://sunlao.github.io/async-service/pylint.svg)
+![CodeStyle](https://sunlao.github.io/async-service/CodeStyle.svg)
+![Coverage](https://sunlao.github.io/async-service/coverage.svg)
+![Bandit](https://sunlao.github.io/async-service/bandit.svg)
+![Safety](https://sunlao.github.io/async-service/safety.svg)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100.0-009688.svg?style=flat&logo=FastAPI&logoColor=white)](https://fastapi.tiangolo.com)
+
 A pythonic template repo for API based services that needs async workers for non blocking jobs. By Default the worker will automatically execute the async non blocking jobs managed by a Queue using a first in first out methodology. Optionally, one can also use a cron like settings for jobs. The worker is separated from the API server to manage different concerns. It comes with helpers and uses a queue for durability and workflow control. Redis is the persistance layer for the queue. It has a simple client helper for direct redis access. However, the opinion is to use arq as the primary interface for most worker related things.
 
 A simple dynamic Html5 app with CSS to view job status is included. An RDBMS with helpers is also included to support jobs that need a relational database. A sample hello job is included in the repo. When the hello job is submitted it will insert a record to the data base. The job is asserted by both API and Cron Run Types. Cron job is running every 10 seconds on startup.
@@ -12,7 +20,7 @@ By default this template repo will only save redis keys for 4 hour to maintain s
 
 ## Prerequisites
 
-Review [Local Development](https://github.com/sunlao/async-service/wiki) Mac Pre-Req and Virtual Environments:
+Review the [wiki](https://github.com/sunlao/async-service/wiki) Mac Pre-Req and Virtual Environments:
 
 * Virtual Environment
 * containers

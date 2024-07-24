@@ -1,0 +1,106 @@
+name: pr-dev
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  pull_request:
+    paths-ignore:
+    - 'docs/**'
+    - README.md
+    - LICENSE
+    branches:
+    - dev
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+
+  validate:
+    if: "!contains(github.event.head_commit.message, '[skip build]')"
+    env:
+      API_STATIC_DIR: /app/src/api/static
+      APP_CODE: aserv
+      ENV: github
+      DB_ADMIN_PWD: ${{ secrets.DB_ADMIN_PWD }}
+      DB_ADMIN_USER: aserv_admin
+      DB_APP_PWD: ${{ secrets.DB_APP_PWD }}
+      DB_CONTAINER_HOST: aserv-postgres
+      DB_CONTAINER_PORT: 5432
+      DB_DATA_PWD: ${{ secrets.DB_DATA_PWD }}
+      DB_HOST_PORT: 5431
+      DB_NAME: db_aserv
+      REDIS_HOST: aserv-redis
+      REDIS_HOST_PORT: 6378
+      REDIS_CONTAINER_PORT: 6379
+    timeout-minutes: 10
+    runs-on: self-hosted
+
+    steps:
+
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
+
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ steps.extract_branch.outputs.branch }}
+
+      - name: brew gtar
+        run: brew install gnu-tar
+
+      - name: pip runner
+        run: make pip_runner
+
+      - name: Code Format
+        run: make black
+
+      - name: Check Git Changed
+        id: verify_diff
+        run: |
+          git diff --quiet . || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Commit and push if changed
+        if: steps.verify_diff.outputs.changed == 'true'
+        run: |
+          git config --global user.email "${{github.actor}}"
+          git config --global user.name "${{github.actor}}"
+          git add -A
+          git commit -m "black [skip build]"
+          git push
+
+      - name: Lint
+        run: make lint
+
+      - name: Start Containers
+        run: make up
+
+      - name: Test
+        run: make test
+        env:
+          API_STATIC_DIR: src/api/static
+          DB_PORT: 5431
+          DB_HOST: localhost
+          HOST_FLAG: "True"
+          REDIS_HOST: localhost
+          REDIS_PORT: 6378
+
+      - name: Safety Check
+        run: make safety
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
+
+      - name: Upload Pages
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: tests/codecoverage/
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v1          
