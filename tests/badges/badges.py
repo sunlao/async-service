@@ -96,7 +96,7 @@ class Badges:
             raise PyLintScoreFailure(score)
         self._lint_badge(score)
 
-    def exe_security(self):
+    def exe_safety(self):
         badge1 = Badge("Bandit", "pass", default_color="#0000FF")
         badge1.write_badge("tests/codecoverage/bandit.svg")
         badge2 = Badge("Safety", "pass", default_color="#0000FF")

@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: ./deploy/api/Dockerfile
-    image: ${APP_CODE}-api:0.1.0
+    image: ${APP_CODE}-api:latest
     platform: linux/amd64
     container_name: ${APP_CODE}-api
     command: ["/start-reload.sh"]
