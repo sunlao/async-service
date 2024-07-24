@@ -20,7 +20,7 @@ By default this template repo will only save redis keys for 4 hour to maintain s
 
 ## Prerequisites
 
-Review [Local Development](https://github.com/sunlao/async-service/wiki) Mac Pre-Req and Virtual Environments:
+Review the [wiki](https://github.com/sunlao/async-service/wiki) Mac Pre-Req and Virtual Environments:
 
 * Virtual Environment
 * containers
