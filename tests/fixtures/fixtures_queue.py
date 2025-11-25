@@ -1,17 +1,14 @@
+from asyncio import sleep
 from pytest import fixture
-from src.helpers.queue.client import Client
+from arq import create_pool
+from shared.queue.arq_client import ARQClient
 
 
-@fixture(scope="module")
-def queue_client():
-    return Client()
-
-
-@fixture(scope="module")
-def queue_keys():
-    return Client().keys()
-
-
-@fixture(scope="module")
-def queue_health():
-    return Client().health()
+@fixture
+async def arq_client(redis_config):
+    arq = ARQClient(redis_config, sleep, create_pool)
+    await arq.startup()
+    try:
+        yield arq
+    finally:
+        await arq.shutdown()

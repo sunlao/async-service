@@ -1,0 +1,15 @@
+selectors:
+  - name: natal
+    definition:
+      union:
+        - method: tag
+          value: natal
+        - method: path
+          value: seeds/natal/*
+  - name: test
+    definition:
+      union:
+        - method: tag
+          value: test
+        - method: path
+          value: seeds/test

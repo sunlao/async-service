@@ -1,9 +1,10 @@
-from fastapi.testclient import TestClient
-from src.api.main import api
-
-
-def test_api_hello_world():
-    with TestClient(api) as client:
-        response = client.get("/")
+async def test_aserv(aserv_api_client):
+    response = await aserv_api_client.get("/", follow_redirects=True)
     assert response.status_code == 200
-    assert response.json() == {"message": "Heath check good!"}
+    assert response.json() == {"Message": "AsyncServ API Service is up!"}
+
+
+async def test_xform(xform_api_client):
+    response = await xform_api_client.get("/", follow_redirects=True)
+    assert response.status_code == 200
+    assert response.json() == {"Message": "XForm API Service for AsyncServ is up!"}

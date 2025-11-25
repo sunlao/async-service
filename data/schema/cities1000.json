@@ -1,0 +1,34 @@
+{
+  "rules": {
+    "encoding": "utf-8",
+    "header": false,
+    "newline": "",
+    "kwargs": {
+      "delimiter": "\t",
+      "quotechar": "\"",
+      "escapechar": "\\",
+      "strict": true
+    }
+  },
+  "details": [
+    { "name": "geonameid",          "type": "text"   },
+    { "name": "name",               "type": "text"   },
+    { "name": "asciiname",          "type": "text"   },
+    { "name": "alternatenames",     "type": "text"   },
+    { "name": "latitude",           "type": "double" },
+    { "name": "longitude",          "type": "double" },
+    { "name": "feature_class",      "type": "text"   },
+    { "name": "feature_code",       "type": "text"   },
+    { "name": "country_code",       "type": "text"   },
+    { "name": "cc2",                "type": "text"   },
+    { "name": "admin1_code",        "type": "text"   },
+    { "name": "admin2_code",        "type": "text"   },
+    { "name": "admin3_code",        "type": "text"   },
+    { "name": "admin4_code",        "type": "text"   },
+    { "name": "population",         "type": "int"    },
+    { "name": "elevation",          "type": "int"    },
+    { "name": "dem",                "type": "int"    },
+    { "name": "timezone",           "type": "text"   },
+    { "name": "modification_date",  "type": "text"   }
+  ]
+}

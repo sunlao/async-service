@@ -1,0 +1,25 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    freshness:
+      warn_after: {count: 12, period: hour}
+      error_after: {count: 24, period: hour}
+    tables:
+      - name: cities
+        loaded_at_field: sys_job_ts
+      - name: admin1
+        loaded_at_field: sys_job_ts
+      - name: admin2
+        loaded_at_field: sys_job_ts
+      - name: iso_country
+        loaded_at_field: sys_job_ts
+      - name: iso_subdivision
+        loaded_at_field: sys_job_ts
+      - name: hello_job
+        loaded_at_field: sys_job_ts
+      - name: hello_test_api
+        loaded_at_field: sys_job_ts
+      - name: hello_seed
+        loaded_at_field: sys_seed_ts

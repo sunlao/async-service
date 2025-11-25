@@ -1,18 +1,17 @@
 from pytest import fixture
-from src.jobs.hello import Hello
-from src.helpers.worker import info_job, info_jobs
+from worker.controller.movement import Movement
+from shared.models.constants import JobTypes
+from shared.models.worker import EnqueueRequest
 
 
 @fixture
-def hello_job():
-    return Hello
-
-
-@fixture(scope="module")
-def worker_info_job():
-    return info_job
+def controller_movement():
+    return Movement
 
 
 @fixture
-async def worker_info_jobs():
-    return await info_jobs()
+def job_100(reader):
+    """Test Job that sleeps for 3 seconds"""
+    return EnqueueRequest(
+        JobType=JobTypes.MOVEMENT, Job=reader.config(100), EnqueueGate=False
+    )

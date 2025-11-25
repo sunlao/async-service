@@ -1,0 +1,6 @@
+{
+  "details": [
+    { "name": "code", "type": "string"},
+    { "name": "name", "type": "string"}
+  ]
+}

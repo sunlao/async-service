@@ -1,0 +1,53 @@
+services:
+  api:
+    environment:
+      - ENV=ci
+      - PYTHONPATH=/app/src:/app
+      - COVERAGE_PROCESS_START=/app/tox.ini
+      - COVERAGE_FILE=/app/tests/.coverage.api
+    volumes:
+      - ./tox.ini:/app/tox.ini:ro
+      - ./tests:/app/tests:rw
+
+  dbt-runtime:
+    environment:
+      - ENV=ci
+      - PYTHONPATH=/app/src:/app
+      - COVERAGE_PROCESS_START=/app/tox.ini
+      - COVERAGE_FILE=/app/tests/.coverage.xform      
+    volumes:
+      - ./tox.ini:/app/tox.ini:ro
+      - ./tests:/app/tests:rw
+
+  db-deploy:
+    environment:
+      - ENV=ci
+
+  postgres:
+    environment:
+      - ENV=ci
+
+  quiesce:
+    environment:
+      - ENV=ci
+
+  redis:
+    environment:
+      - ENV=ci
+
+  worker:
+    entrypoint: bash -c "cd /app && python -m coverage run -m arq src.worker.AppSettings"
+    environment:
+      - ENV=ci
+      - PYTHONPATH=/app/src:/app
+      - COVERAGE_PROCESS_START=/app/tox.ini
+      - COVERAGE_FILE=/app/tests/.coverage.worker      
+    volumes:
+      - ./tox.ini:/app/tox.ini:ro
+      - ./tests:/app/tests:rw
+
+  test:
+    environment:
+      - ENV=ci
+    volumes:
+      - ./docs/code_coverage:/app/doc:rw

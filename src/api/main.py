@@ -1,56 +1,155 @@
-from os import environ
-from logging import info as log_info
-from time import sleep
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from src.api.metadata import tags
-from src.helpers.db import (
-    open_database,
-    close_database,
-    MAX_DB_CONNECT_ATTEMPTS,
-    DB_CONNECT_RETRY_DELAY,
+# pylint: disable=duplicate-code
+from pathlib import Path
+from contextlib import asynccontextmanager
+from asyncio import sleep as async_sleep
+from starlette.responses import PlainTextResponse
+from fastapi import FastAPI, Request, Response
+from arq import create_pool
+from api.metadata import tags
+from api.v1 import info, ready, enqueue, runs, flush, profile
+from api.v1.location import cities, counties, countries, resolve, states
+from shared.queue.arq_client import ARQClient
+from shared.log.helpers.api_log_serializer import LogSerializer
+from shared.db import Engine
+from shared.config.locker import Locker
+from shared.config.reader import Reader
+from shared.log.writer import Writer
+from shared.log.helpers.error import Error
+from shared.log.helpers.core import build as core_log
+from shared.models.constants import UserContext
+from shared.models.config import ReaderConfig
+from shared.models.constants import Events, LogLevel
+from shared.models.api import ASGIEvent, RootResponse
+from shared.models.db import DBStartUpContext
+from shared.models.log import EventError
+
+
+locker = Locker()
+config_log = locker.log()
+config_aserv = locker.aserv()
+redid_log = locker.redis()
+reader = Reader(
+    ReaderConfig(
+        JobPath=config_aserv.JobPath,
+        JobVersion=config_aserv.JobVersion,
+    )
 )
-from src.api.v1 import info, ready, version_app, jobs, status
-from src.api.app.v1 import status as app_status
-
-api = FastAPI(
-    title="Hello Service Api", version=f"Version: {version_app()}", openapi_tags=tags()
-)
-
-api.mount("/static", StaticFiles(directory=environ["API_STATIC_DIR"]), name="static")
+arq = ARQClient(locker.redis(), async_sleep, create_pool)
+gate_path = Path(config_aserv.GatePath)
 
 
-@api.on_event("startup")
-async def startup():
-    """Create database connections pool"""
-    conn_attempts = 0
-    while True:
-        if conn_attempts == MAX_DB_CONNECT_ATTEMPTS:
-            raise ValueError("Database connection attempts exceeded")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.log = Writer(config_log)
+    app.state.log_error_helper = Error()
+    app.state.format_log = LogSerializer()
+    app.state.user_context = UserContext.APP
+    app.state.reader = reader
+    app.state.config_log = config_log
+    app.state.app_version = config_aserv.AppVersion
+    app.state.enqueue_gate = gate_path.is_file()
+    db_startup_ctx = DBStartUpContext(
+        Log=app.state.log,
+        UserContext=app.state.user_context,
+        Config=config_log,
+        LogErrorHelper=app.state.log_error_helper,
+        DBMaxPool=config_aserv.DBMaxPool,
+    )
+    app.state.db = Engine(db_startup_ctx)
+    app.state.arq_client = arq
+    await app.state.arq_client.startup()
+    await app.state.db.startup()
+    if not await app.state.arq_client.redis_ping():
+        await app.state.db.shutdown()
+        await app.state.arq_client.shutdown()
+        msg = "Failed Redis Ping on startup"
+        core = core_log(config_log, LogLevel.ERROR, Events.STARTUP, msg)
+        app.state.log.write_core(core)
+        raise RuntimeError("Redis ping failed during startup")
+    msg = "API Service Startup complete"
+    core = core_log(config_log, LogLevel.INFO, Events.STARTUP, msg)
+    app.state.log.write_core(core)
+    try:
+        yield
+    finally:
+        await app.state.db.shutdown()
+        await app.state.arq_client.shutdown()
+        msg = "API Service Shutdown complete"
+        core = core_log(config_log, LogLevel.INFO, Events.SHUTDOWN, msg)
+        app.state.log.write_core(core)
+
+
+def create_api() -> FastAPI:
+    _api = FastAPI(
+        title="Async API Service",
+        version=f"Version: {config_aserv.AppVersion}",
+        openapi_tags=tags(),
+        lifespan=lifespan,
+    )
+
+    # used for central api logging events
+    @_api.middleware("http")
+    async def _access_mw(
+        request: Request, call_next
+    ):  # pylint: disable=too-many-locals
+        start = config_log.TimeCounter()
+        request.app.state.txid = request.app.state.format_log.transaction_id(request)
         try:
-            conn_attempts += 1
-            await open_database()
-            break
-        except:  # pylint: disable=W0702
-            log_info("Database is not ready, sleeping for %ss", DB_CONNECT_RETRY_DELAY)
-            sleep(DB_CONNECT_RETRY_DELAY)
+            response: Response = await call_next(request)
+            error = None
+            trace_back_nfo = None
+        except Exception as e:  # pylint: disable=broad-except
+            response = PlainTextResponse(
+                "Unknown Internal Server Error", status_code=500
+            )
+            error = e
+            trace_back_nfo = request.app.state.log_error_helper.trace_back_nfo(e)
+        finally:
+            duration = int((config_log.TimeCounter() - start) * 1000)
+            msg = request.app.state.format_log.message(response)
+            core_event = core_log(config_log, LogLevel.INFO, Events.ACCESS, msg)
+            event_input = ASGIEvent(
+                Request=request, Response=response, DurationMS=duration
+            )
+            log_dto = request.app.state.format_log.build(core_event, event_input)
+            if error is None:
+                request.app.state.log.write_event(dto=log_dto)
+            else:
+                err_core = core_log(
+                    config_log, LogLevel.ERROR, Events.HTTP_ERROR, str(error)
+                )
+                error_event_input = ASGIEvent(
+                    Request=request, Response=response, DurationMS=duration
+                )
+                error_event_dto = request.app.state.format_log.build(
+                    err_core, error_event_input
+                )
+                error_event_error_dto = EventError(
+                    Core=error_event_dto.Core,
+                    Event=error_event_dto.Event,
+                    Error=trace_back_nfo,
+                )
+                request.app.state.log.write_event_error(dto=error_event_error_dto)
+        return response
+
+    @_api.get("/api/v1")
+    async def root() -> RootResponse:
+        """Application Root"""
+        return RootResponse(Message="Async API Service is up!")
+
+    # routing
+    _api.include_router(info.router, prefix="/api/v1", tags=["info"])
+    _api.include_router(ready.router, prefix="/api/v1", tags=["info"])
+    _api.include_router(enqueue.router, prefix="/api/v1", tags=["enqueue"])
+    _api.include_router(runs.router, prefix="/api/v1", tags=["enqueue"])
+    _api.include_router(flush.router, prefix="/api/v1", tags=["flush"])
+    _api.include_router(countries.router, prefix="/api/v1/location", tags=["location"])
+    _api.include_router(states.router, prefix="/api/v1/location", tags=["location"])
+    _api.include_router(counties.router, prefix="/api/v1/location", tags=["location"])
+    _api.include_router(cities.router, prefix="/api/v1/location", tags=["location"])
+    _api.include_router(resolve.router, prefix="/api/v1/location", tags=["location"])
+    _api.include_router(profile.router, prefix="/api/v1/profile", tags=["profile"])
+    return _api
 
 
-@api.on_event("shutdown")
-async def shutdown():
-    """Close database connections pool"""
-    log_info("^^^ SHUTDOWN EVENT")
-    await close_database()
-
-
-@api.get("/")
-async def root():
-    return {"message": "Heath check good!"}
-
-
-# routing
-api.include_router(info.router, prefix="/api/v1", tags=["info"])
-api.include_router(ready.router, prefix="/api/v1", tags=["ready"])
-api.include_router(jobs.router, prefix="/api/v1", tags=["jobs"])
-api.include_router(status.router, prefix="/api/v1", tags=["status"])
-api.include_router(app_status.router, prefix="/app/v1", tags=["status"])
+api = create_api()

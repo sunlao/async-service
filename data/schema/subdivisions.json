@@ -1,0 +1,7 @@
+{
+  "details": [
+    { "name": "country_code", "type": "string"},
+    { "name": "code",         "type": "string"},
+    { "name": "name",         "type": "string"}
+  ]
+}

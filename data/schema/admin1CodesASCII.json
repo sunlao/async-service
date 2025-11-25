@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "encoding": "utf-8",
+    "header": false,
+    "newline": "",
+    "kwargs": {
+      "delimiter": "\t",
+      "quotechar": "\"",
+      "escapechar": "\\",
+      "strict": true
+    }
+  },
+  "details": [
+    { "name": "code",       "type": "text" },
+    { "name": "name",       "type": "text" },
+    { "name": "asciiname",  "type": "text" },
+    { "name": "geonameid",  "type": "text" }
+  ]
+}

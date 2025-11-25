@@ -1,50 +1,52 @@
-.PHONY: black
+.PHONY: black lint safety
 black:
 	black src tests
-	python tests/badges/exe_black.py
-
-.PHONY: down
-down:
-	docker-compose down --remove-orphans -v
-
-.PHONY: lint
+	python -m badges.exe black
 lint:
-	python tests/badges/exe_lint.py
+# 	execute pylint for src via badge 
+	python -m badges.exe lint
+# 	exeucte. pylint for tests without a badge
+	pylint --rcfile=tox.ini --disable=C0103 tests
 	pycodestyle src tests
-	python tests/badges/exe_code_style.py
+	python -m badges.exe code_style
+safety:
+	pip-audit -r requirements.txt --strict
+	bandit -r src
+	sudo chown -R $$(id -u):$$(id -g) docs/code_coverage
+	python -m badges.exe safety
 
-.PHONY: lint_local
-lint_local:
-	black src tests
-	pylint --rcfile=tox.ini src
-	pycodestyle src tests	
+.PHONY: up test-build test test-ci-local down
+up:
+	python -m scripts.reset
+	docker compose -f docker-compose.yml up --build --remove-orphans --detach api db-deploy postgres redis worker dbt-runtime
+test-build:
+	docker compose -f docker-compose.yml build test
+test:
+	docker compose -f docker-compose.yml run --no-deps --remove-orphans test tox
+test-ci-local:
+	python -m scripts.reset
+	docker compose -f docker-compose.yml -f docker-compose-ci-local.yml up --build --remove-orphans --detach api db-deploy postgres redis worker dbt-runtime
+	docker compose -f docker-compose.yml -f docker-compose-ci-local.yml run --no-deps --rm test tox -e ci
+down:
+	docker compose down --remove-orphans -v
+down-ci:
+	docker compose down --remove-orphans -v api db-deploy postgres redis worker dbt-runtime
 
-.PHONY: pip_runner
+.PHONY: pip_runner up-ci test-ci
 pip_runner:
 	pip install --upgrade pip
 	pip install -r requirements.txt
 	pip install -r requirements-test.txt
-
-.PHONY: safety
-safety:
-	safety check -r requirements.txt --ignore=70612 
-	docker run --rm aserv-worker /bin/bash -c "pip install safety && safety check --ignore=70612"
-	docker run --rm aserv-api /bin/bash -c "pip install safety && safety check --ignore=70612"
-	bandit -r src
-	python tests/badges/exe_safety.py
-	python tests/badges/exe_index.py
-
-.PHONY: safety_local
-safety_local:
-	safety check --ignore=70612
-	bandit -r src
-
-.PHONY: test
-test:
-	coverage run -m pytest --color=yes
-	coverage html -d tests/codecoverage
-	coverage-badge -o tests/codecoverage/coverage.svg
-
-.PHONY: up
-up:
-	./build.sh
+up-ci:
+	docker compose -f docker-compose.yml -f docker-compose-ci.yml pull api worker db-deploy dbt-runtime
+	docker compose -f docker-compose.yml -f docker-compose-ci.yml up -d --no-build api db-deploy postgres redis worker dbt-runtime
+	docker ps
+test-ci:
+	docker compose -f docker-compose.yml -f docker-compose-ci.yml pull test
+	./scripts/path_probe.sh
+	docker logs aserv-worker
+	docker compose -f docker-compose.yml -f docker-compose-ci.yml run --no-deps --rm test tox -e ci
+	
+.PHONY: quiesce
+quiesce:
+	docker compose -f docker-compose.yml up --build --remove-orphans --detach quiesce

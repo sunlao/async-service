@@ -1,0 +1,6 @@
+psycopg2-binary==2.9.10
+dbt-core==1.10.11
+dbt-postgres==1.9.1
+#  only used for AsyncConnection class in shared models
+asyncpg==0.30.0
+coverage==7.10.7

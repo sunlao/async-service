@@ -3,6 +3,7 @@ FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
 # install python packages
 COPY requirements.txt /app/
 COPY VERSION /app/VERSION
+COPY deploy/sitecustomize.py /app/sitecustomize.py
 RUN pip install --upgrade pip && \
     pip install -r /app/requirements.txt
 RUN touch /tmp/healthy

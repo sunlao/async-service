@@ -1,0 +1,6 @@
+{
+  "details": [
+    { "name": "source_word", "type": "string" },
+    { "name": "source_time", "type": "string" }
+  ]
+}

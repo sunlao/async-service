@@ -1,5 +1,4 @@
 services:
-
   api:
     build:
       context: .
@@ -9,23 +8,87 @@ services:
     container_name: ${APP_CODE}-api
     command: ["/start-reload.sh"]
     ports:
-      - "8080:80"
+      - "${API_PUB_PORT}:${API_PORT}"    
     environment:
       - APP_CODE=${APP_CODE}
-      - APP_MODULE=src.api.main:api
       - ENV=${ENV}
-      - DB_HOST=${DB_CONTAINER_HOST}
+      - SERVICE=${APP_CODE}-api
+      - APP_MODULE=src.api.main:api
+      - PORT=${API_PORT}
+      - DB_HOST=${APP_CODE}-postgres
       - DB_APP_PWD=${DB_APP_PWD}
-      - DB_NAME=${DB_NAME}
-      - DB_PORT=${DB_CONTAINER_PORT}
+      - DB_NAME=db_${APP_CODE}
+      - DB_PORT=${DB_PORT}
+      - DB_MAX_POOL=${DB_MAX_POOL_API}
       - REDIS_HOST=${APP_CODE}-redis
-      - REDIS_PORT=${REDIS_CONTAINER_PORT}
+      - REDIS_PORT=${REDIS_PORT}
       - API_STATIC_DIR=${API_STATIC_DIR}
       - TZ=GMT
+      - LOG_LEVEL=info
+      - LOG_DIR=/logs
+      - LOG_TO_FILE=true
+      - BACKUP_COUNT=14
+      - PYTHONPATH=/app/src
+      - JOB_PATH=${JOB_PATH}
+      - JOB_VERSION=${JOB_VERSION}
+      - PYTHONDONTWRITEBYTECODE=1
+      - WATCHFILES_FORCE_POLLING=1
+      - GATE_CLOSE_PATH=${GATE_CLOSE_PATH}
     volumes:
+      - ./data/gate:/app/gate:r    
       - ./src/api:/app/src/api:rw
-      - ./src/helpers:/app/src/helpers:rw
-      - ./src/jobs:/app/src/jobs:rw
+      - ./src/shared:/app/src/shared:rw
+      - ./logs:/logs:rw
+      - ./job${JOB_VERSION}.yml:/app/job${JOB_VERSION}.yml:r
+    depends_on:
+      db-deploy:
+        condition: service_completed_successfully            
+    networks:
+      - "${APP_CODE}net"
+
+  dbt-runtime:
+    image: dbt_runtime
+    container_name: ${APP_CODE}-dbt    
+    entrypoint:
+      - /bin/sh
+      - -c
+      - sh /app/prestart.sh && cd /app/src/xform && dbt deps && cd /app/ && exec uvicorn src.xform.api.main:api --host 0.0.0.0 --port 81 --reload --reload-dir /app/src/xform/api
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:81/api/v1/ready"]
+      interval: 20s
+      timeout: 15s
+      retries: 10
+      start_period: 10s
+    ports:
+      - "${DBT_API_PUB_PORT}:${DBT_API_PORT}"    
+    build:
+      context: .
+      dockerfile: ./deploy/dbt-runtime/Dockerfile
+    environment:
+      - APP_CODE=${APP_CODE}
+      - ENV=${ENV}
+      - SERVICE=${APP_CODE}-dbt
+      - PORT=${DBT_API_PORT}
+      - APP_MODULE=src.xform.api.main:api
+      - API_STATIC_DIR=${API_STATIC_DIR}
+      - DBT_PROFILES_DIR=${DBT_PROF_DIR}
+      - DBT_TARGET_PATH=${XFORM_RUNS_DIR}
+      - DBT_PWD=${DB_DATA_PWD}
+      - XFORM_DIR=${XFORM_DIR}
+      - LOG_LEVEL=info
+      - LOG_DIR=/logs
+      - LOG_TO_FILE=true
+      - PYTHONPATH=/app/src
+      - PYTHONDONTWRITEBYTECODE=1
+      - WATCHFILES_FORCE_POLLING=1      
+    volumes:
+      - ./src/xform:${XFORM_DIR}:rw
+      - ./data/xform_runs:${XFORM_RUNS_DIR}:rw
+      - ./src/shared:/app/src/shared:rw
+      - ./logs:/logs:rw  
+    depends_on:
+      db-deploy:
+        condition: service_completed_successfully             
     networks:
       - "${APP_CODE}net"
 
@@ -39,7 +102,7 @@ services:
     environment:
       - APP_CODE=${APP_CODE}
       - ENV=${ENV}
-      - DB_CONTAINER_PORT=${DB_CONTAINER_PORT}
+      - DB_PORT=${DB_PORT}
       - DB_ADMIN_PWD=${DB_ADMIN_PWD}
       - DB_DATA_PWD=${DB_DATA_PWD}
       - DB_APP_PWD=${DB_APP_PWD}
@@ -50,25 +113,60 @@ services:
       - "${APP_CODE}net"
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:17-alpine
     container_name: "${APP_CODE}-postgres"
     ports:
-      - "${DB_HOST_PORT}:${DB_CONTAINER_PORT}"
+      - "${DB_PUB_PORT}:${DB_PORT}"
     environment:
-      - POSTGRES_DB=${DB_NAME}
+      - SERVICE=${APP_CODE}-postgres
+      - POSTGRES_DB=db_${APP_CODE}
       - POSTGRES_USER=${DB_ADMIN_USER}
       - POSTGRES_PASSWORD=${DB_ADMIN_PWD}
+      - TZ=UTC
+    networks:
+      - "${APP_CODE}net"
+
+  quiesce:
+    build:
+      context: .
+      dockerfile: ./deploy/quiesce/Dockerfile
+    image: ${APP_CODE}-quiesce:latest
+    container_name: ${APP_CODE}-quiesce
+    command: ["python", "-m", "quiesce.control"]
+    environment:
+      - APP_CODE=${APP_CODE}
+      - SERVICE=${APP_CODE}-quiesce
+      - ENV=${ENV}
       - TZ=GMT
+      - LOG_LEVEL=info
+      - LOG_DIR=/logs
+      - LOG_TO_FILE=true
+      - DB_HOST=${APP_CODE}-postgres
+      - DB_DATA_PWD=${DB_DATA_PWD}
+      - DB_NAME=db_${APP_CODE}
+      - DB_PORT=${DB_PORT}
+      - DB_MAX_POOL=${DB_MAX_POOL_QUIESCE}
+      - REDIS_HOST=${APP_CODE}-redis
+      - REDIS_PORT=${REDIS_PORT}      
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app/src
+      - GATE_CLOSE_PATH=${GATE_CLOSE_PATH}      
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/gate:/app/gate:rw
+      - ./src/quiesce:/app/src/quiesce:rw    
+      - ./src/shared:/app/src/shared:rw
+      - ./logs:/logs:rw
     networks:
       - "${APP_CODE}net"
 
   redis:
-    image: redis:7-alpine
+    image: redis:8.2-alpine
     container_name: ${APP_CODE}-redis
     environment:
       - TZ=GMT
     ports:
-      - "${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}"
+      - "${REDIS_PUB_PORT}:${REDIS_PORT}"
     networks:
       - "${APP_CODE}net"
 
@@ -78,26 +176,88 @@ services:
       dockerfile: ./deploy/worker/Dockerfile
     image: ${APP_CODE}-worker:latest
     container_name: ${APP_CODE}-worker
-    entrypoint: bash -c "cd /app && arq src.helpers.worker.WorkerSettings --watch /app"
+    entrypoint: bash -c "cd /app && arq src.worker.AppSettings --watch /app"
+    restart: unless-stopped
     environment:
       - APP_CODE=${APP_CODE}
+      - SERVICE=${APP_CODE}-worker
       - ENV=${ENV}
       - REDIS_HOST=${APP_CODE}-redis
-      - REDIS_PORT=${REDIS_CONTAINER_PORT}
-      - DB_HOST=${DB_CONTAINER_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - DB_HOST=${APP_CODE}-postgres
       - DB_DATA_PWD=${DB_DATA_PWD}
-      - DB_NAME=${DB_NAME}
-      - DB_PORT=${DB_CONTAINER_PORT}
+      - DB_NAME=db_${APP_CODE}
+      - DB_PORT=${DB_PORT}
+      - DB_MAX_POOL=${DB_MAX_POOL_WORKER}
       - TZ=GMT
+      - LOG_LEVEL=info
+      - LOG_DIR=/logs
+      - DATA_DIR=/data
+      - LOG_TO_FILE=true
+      - BACKUP_COUNT=10
+      - PYTHONDONTWRITEBYTECODE=1
+      - WATCHFILES_FORCE_POLLING=1      
+      - PYTHONPATH=/app/src
+      - START_UP=${START_UP}
+      - JOB_PATH=${JOB_PATH}
+      - JOB_VERSION=${JOB_VERSION}
+      - GATE_CLOSE_PATH=${GATE_CLOSE_PATH}      
     depends_on:
-      - redis
+      redis:
+        condition: service_started
+      db-deploy:
+        condition: service_completed_successfully          
+      dbt-runtime:
+        condition: service_healthy
     links:
       - redis
     volumes:
-      - ./src/helpers:/app/src/helpers:rw
-      - ./src/jobs:/app/src/jobs:rw
+      - ./src/shared:/app/src/shared:rw
+      - ./src/worker:/app/src/worker:rw
+      - ./data/xform_runs:${XFORM_RUNS_DIR}:rw
+      - ./data:/data:rw
+      - ./logs:/logs:rw
+      - ./job${JOB_VERSION}.yml:/app/job${JOB_VERSION}.yml:r
+      - ./data/gate:/app/gate:r    
     networks:
       - "${APP_CODE}net"
 
+  test:
+    build:
+      context: .
+      dockerfile: ./deploy/test-runner/Dockerfile
+    container_name: ${APP_CODE}-test-runner
+    command: bash -lc "cd /app && tox -vv"
+    environment:
+      - SERVICE=${APP_CODE}-test
+      - APP_CODE=${APP_CODE}
+      - API_HOST=${APP_CODE}-api
+      - API_PORT=${API_PORT}
+      - XFORM_DIR=${XFORM_DIR}
+      - DB_PORT=${DB_PORT}
+      - DB_HOST=${APP_CODE}-postgres
+      - DB_DATA_PWD=${DB_DATA_PWD}
+      - DB_APP_PWD=${DB_APP_PWD}
+      - ENV=${ENV}
+      - REDIS_HOST=${APP_CODE}-redis
+      - REDIS_PORT=${REDIS_PORT}
+      - LOG_LEVEL=info
+      - LOG_DIR=/logs
+      - DATA_DIR=/data
+      - LOG_TO_FILE=true
+      - LOG_BACKUPS=14
+      - PYTHONPATH=/app/src
+      - JOB_PATH=${JOB_PATH}
+      - JOB_VERSION=${JOB_VERSION}
+      - GATE_CLOSE_PATH=${GATE_CLOSE_PATH}      
+    volumes:
+      - ./tests:/app/tests:rw
+      - ./logs:/logs:rw      
+      - ./data:/data:rw
+      - ./src:/app/src:rw
+      - ./job${JOB_VERSION}.yml:/app/job${JOB_VERSION}.yml:r
+      - ./data/gate:/app/gate:rw
+    networks:
+      - "${APP_CODE}net"
 networks:
   aservnet:

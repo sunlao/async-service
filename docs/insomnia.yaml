@@ -1,0 +1,1308 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: AstroChat
+meta:
+  id: wrk_a2f39ab7f9d34b5188f3f47b9acab52c
+  created: 1757187347821
+  modified: 1757187359479
+  description: ""
+collection:
+  - name: AchatApi
+    meta:
+      id: fld_a43cedc8a9e74fcd97e424b80c9fdc35
+      created: 1757856135407
+      modified: 1763733076294
+      sortKey: -1759081675646
+      description: ""
+    children:
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}runs"
+        name: List Jobs
+        meta:
+          id: req_b957b889bf7b4d66bec73ab1aafdd33b
+          created: 1755292125173
+          modified: 1762701907398
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153198
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: >
+            const json = insomnia.response.json();
+
+
+            insomnia.test('List Jobs Works', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+
+
+            insomnia.collectionVariables.set("run_id_list_1" ,
+            json.Runs[0].RunID);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}runs/{{
+          _.run_id_list_1 }}"
+        name: First Job form List
+        meta:
+          id: req_9bbf3f44689d4ffc85c1a37dfd302852
+          created: 1755292140941
+          modified: 1762879335920
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153173
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}enqueue/101"
+        name: Hello-Re-Enqueue-101
+        meta:
+          id: req_90233206da274e5e9c455045ebb96fbe
+          created: 1757189170187
+          modified: 1763152069599
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153273
+        method: POST
+        body:
+          mimeType: application/json
+          text: ""
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: >-
+            const json = insomnia.response.json();
+
+
+
+            insomnia.test('Hello Sumbits', () => {
+            		insomnia.expect(insomnia.response.code).to.not.have.any.keys(202, 409);
+            });
+
+
+            insomnia.collectionVariables.set("enq-mv-101", json.RunID);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}runs/{{
+          _['enq-mv-100'] }}"
+        name: Hello-Enqueue-Only-100
+        meta:
+          id: req_efd5ff2f0a2547918858a4b4040ce8fe
+          created: 1757197781662
+          modified: 1763152102916
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153298
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          preRequest: |-
+            
+            function sleep(ms) {
+              return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            await sleep(2000); 
+          afterResponse: |-
+            const json = insomnia.response.json();
+
+            insomnia.test('Hello 200', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+
+            insomnia.test('Hello Valid', () => {
+            	insomnia.expect(json.Info.Event.Status).to.eql(true);
+            });
+
+            insomnia.test('Hello No error', () => {
+            	insomnia.expect(json.Error).to.eql(null);
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}runs/{{
+          _['enq-mv-1002'] }}"
+        name: CitiesDL-Unzip-1002
+        meta:
+          id: req_ff07e55205a54988898524af23c7e7b4
+          created: 1757898666564
+          modified: 1763094269799
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153244.0938
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |-
+            const json = insomnia.response.json();
+
+            insomnia.test('City Status good', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+
+            insomnia.test('Citi run id succes', () => {
+            	insomnia.expect(json.RunID).to.eql("cities1000-cities1000-1");
+            	insomnia.expect(json.Info.Event.Status).to.eql(true);
+            });
+
+            insomnia.test('City run no error', () => {
+            	insomnia.expect(json.Error).to.eql(null);
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}enqueue/102"
+        name: TestHelloAPI-102
+        meta:
+          id: req_74106092e736480a8022735df25e9cd6
+          created: 1761180263252
+          modified: 1763094498237
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153248
+        method: POST
+        body:
+          mimeType: application/json
+          text: ""
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |-
+            const json = insomnia.response.json();
+
+            insomnia.collectionVariables.set("enq-mv-102", json.RunID);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}runs/{{
+          _['enq-mv-102'] }}"
+        name: TestHelloAPI-102
+        meta:
+          id: req_ddbee2b590e14690a334c0fe8c6d9598
+          created: 1761180442778
+          modified: 1763094507267
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153247.2188
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |-
+            insomnia.test('List first job Works', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}runs/{{
+          _['enq-mv-101'] }}"
+        name: Hello-Re-Enqueue-101
+        meta:
+          id: req_13c3b4e99180470f9d6e4375f372d90b
+          created: 1761337254348
+          modified: 1763152076243
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153260.5
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: >-
+            const json = insomnia.response.json();
+
+
+            insomnia.test('Hello 200', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+
+
+            insomnia.test('Hello Valid', () => {
+            	insomnia.expect(json.RunID).to.eql("hello_api_job-raw.hello_api_job-1");
+            	insomnia.expect(json.Info.Event.Status).to.eql(true);
+            });
+
+
+            insomnia.test('Hello No error', () => {
+            	insomnia.expect(json.Error).to.eql(null);
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}enqueue/1002"
+        name: moveCitiesDL-Unzip-1002
+        meta:
+          id: req_392ae35bc440424dbe2b931ba07025da
+          created: 1761882013885
+          modified: 1763094263187
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153244.875
+        method: POST
+        body:
+          mimeType: application/json
+          text: ""
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |-
+            const json = insomnia.response.json();
+
+            insomnia.collectionVariables.set("enq-mv-1002", json.RunID);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path
+          }}runs/cities1000.txt-raw.cities-1"
+        name: CitiesLoad
+        meta:
+          id: req_4291e01254d747a3937c729129095833
+          created: 1762003743198
+          modified: 1762259529575
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153207.375
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |-
+            const json = insomnia.response.json();
+
+            insomnia.test('City Status good', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+
+            insomnia.test('Citi run id succes', () => {
+            	insomnia.expect(json.RunID).to.eql("cities1000.txt-raw.cities-1");
+            	insomnia.expect(json.Info.Event.Status).to.eql(true);
+            });
+
+            insomnia.test('City run no error', () => {
+            	insomnia.expect(json.Error).to.eql(null);
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}enqueue/103"
+        name: enqueue-move-103 (error)
+        meta:
+          id: req_6d8501adfb6f41548f4157bccaa4746b
+          created: 1762109544714
+          modified: 1763094152164
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153246.4375
+        method: POST
+        body:
+          mimeType: application/json
+          text: ""
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |-
+            const json = insomnia.response.json();
+
+            insomnia.collectionVariables.set("enq-mv-103", json.RunID);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}runs/{{
+          _['enq-mv-103'] }}"
+        name: runs-103-1 (error)
+        meta:
+          id: req_0745c6bcd4c748f89a14baa3a6bd754a
+          created: 1762258527886
+          modified: 1763094177708
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153245.6562
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}enqueue/1006"
+        name: OpsLedger-1006
+        meta:
+          id: req_5bc4af4eb5bb45e89fa016d38a5b0ac9
+          created: 1762812611507
+          modified: 1763094319483
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153243.3125
+        method: POST
+        body:
+          mimeType: application/json
+          text: ""
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |
+            const json = insomnia.response.json();
+
+            insomnia.test('PostOpsLedger1006', () => {
+                insomnia.expect(insomnia.response.code).to.eql(202);
+            });
+
+            insomnia.collectionVariables.set("ops_ledger_id", json.RunID);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}runs/{{
+          _.ops_ledger_id }}"
+        name: OpsLedger-1006
+        meta:
+          id: req_0ac09d5e0fb24b3cbd83c94f4a1c1aab
+          created: 1762877873546
+          modified: 1763094325525
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153221.4375
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |-
+            insomnia.test('List first job Works', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}enqueue/100"
+        name: Hello-Enqueue-Only-100
+        meta:
+          id: req_3a243b7655a04d81a2941b23a85bb8cf
+          created: 1762906413171
+          modified: 1763152098463
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153323
+        method: POST
+        body:
+          mimeType: application/json
+          text: ""
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: >-
+            const json = insomnia.response.json();
+
+
+
+            insomnia.test('Hello Sumbits', () => {
+            		insomnia.expect(insomnia.response.code).to.not.have.any.keys(202, 409);
+            });
+
+
+            insomnia.collectionVariables.set("enq-mv-100", json.RunID);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}enqueue/1007"
+        name: admin2-1007
+        meta:
+          id: req_d8863cbd6d384715ba27c4266edce39b
+          created: 1763695271966
+          modified: 1763695352047
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153219.6797
+        method: POST
+        body:
+          mimeType: application/json
+          text: ""
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |
+            const json = insomnia.response.json();
+
+            insomnia.test('admin2-1007', () => {
+                insomnia.expect(insomnia.response.code).to.eql(202);
+            });
+
+            insomnia.collectionVariables.set("admin2", json.RunID);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}runs/{{ _.admin2
+          }}"
+        name: admin2-1007
+        meta:
+          id: req_e58c67e7a2c2443b871d7b29a516b278
+          created: 1763695283038
+          modified: 1763695467431
+          isPrivate: false
+          description: ""
+          sortKey: -1757856153217.9219
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |-
+            insomnia.test('List first job Works', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: AchatCore
+    meta:
+      id: fld_8b4e33b2edf348fba476532aa3ae68e8
+      created: 1757856281803
+      modified: 1763905075021
+      sortKey: -1759081675696
+      description: ""
+    children:
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}ready"
+        name: ready
+        meta:
+          id: req_4fd7c10a26544adbae7a73853472d370
+          created: 1755228465178
+          modified: 1759081783509
+          isPrivate: false
+          description: ""
+          sortKey: -1757856285653
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |-
+            insomnia.test('Ready 200', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+            insomnia.test('Ready True', () => {
+            	const jsonBody = insomnia.response.json();
+            	insomnia.expect(jsonBody.DBCheck).to.eql(true);
+            	insomnia.expect(jsonBody.WorkerCheck).to.eql(true);
+            });
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}info"
+        name: info
+        meta:
+          id: req_da5d611ee73a44ef91c548fb3fadfd1b
+          created: 1755287863037
+          modified: 1759081779051
+          isPrivate: false
+          description: ""
+          sortKey: -1757856285678
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: >+
+            insomnia.test('Info 200', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+
+            insomnia.test('Info valid', () => {
+            	const jsonBody = insomnia.response.json();
+            	insomnia.expect(jsonBody).to.have.any.keys('FastApiVersion', 'AChatVersion');
+            });
+
+
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}"
+        name: root
+        meta:
+          id: req_c41ba0d10b8744868871329f6f20a015
+          created: 1755287881706
+          modified: 1760383484070
+          isPrivate: false
+          description: ""
+          sortKey: -1757856285703
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          preRequest: "\n\n"
+          afterResponse: >+
+            insomnia.test('Root 200', () => {
+                insomnia.expect(insomnia.response.code).to.eql(200);
+            });
+
+            insomnia.test('Root Up', () => {
+            	const jsonBody = insomnia.response.json();
+            	insomnia.expect(jsonBody.Message).to.eql("Astro Chat API Service is up!");
+            });
+
+
+
+
+
+
+
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}flush"
+        name: flush
+        meta:
+          id: req_5cfa0656ec5a4622a03b02f438a13548
+          created: 1760793305165
+          modified: 1760793348830
+          isPrivate: false
+          description: ""
+          sortKey: -1757856219463
+        method: POST
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: DBT
+    meta:
+      id: fld_20a83e3215ca4cfeb3f8705fd903602a
+      created: 1759081675596
+      modified: 1763904953260
+      sortKey: -1759081675633.5
+      description: ""
+    children:
+      - url: "{{ _.http }}{{ _.host }}{{ _['dbt-port'] }}{{ _.path }}debug"
+        name: debug
+        meta:
+          id: req_80e2989e98bb48489f2bb04437879c1d
+          created: 1759075823600
+          modified: 1760378873881
+          isPrivate: false
+          description: ""
+          sortKey: -1759081681072
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['dbt-port'] }}{{ _.path }}info"
+        name: info
+        meta:
+          id: req_283c9951bec043839ac490cc500b8bea
+          created: 1759081901887
+          modified: 1759358997715
+          isPrivate: false
+          description: ""
+          sortKey: -1759081681172
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['dbt-port'] }}{{ _.path }}run/test"
+        name: run-test
+        meta:
+          id: req_e0f7fe5b899846469862bff4f822d86b
+          created: 1759358986915
+          modified: 1760999421492
+          isPrivate: false
+          description: ""
+          sortKey: -1758775332229.75
+        method: POST
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |
+            const json = insomnia.response.json();
+            insomnia.collectionVariables.set("run_id_run" , json.RunId);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['dbt-port'] }}{{ _.path }}seed/natal"
+        name: seed-natal
+        meta:
+          id: req_3a8c5425815741ae80c7897f74ca3db5
+          created: 1759878197659
+          modified: 1760999101976
+          isPrivate: false
+          description: ""
+          sortKey: -1758928506650.875
+        method: POST
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |
+            const json = insomnia.response.json();
+            insomnia.collectionVariables.set("run_id_seed" , json.RunId);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['dbt-port'] }}{{ _.path }}results"
+        name: results-run
+        meta:
+          id: req_37743947419844c2b6d19061b29428be
+          created: 1760137018221
+          modified: 1761334912106
+          isPrivate: false
+          description: ""
+          sortKey: -1758775332129.75
+        method: POST
+        body:
+          mimeType: application/json
+          text: |
+            {
+            	"RunId": "{{ _.run_id_run }}",
+            	"ActionType": "run"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['dbt-port'] }}{{ _.path }}results"
+        name: results-seed
+        meta:
+          id: req_aae56f3306b74499b9a362329f805163
+          created: 1760202963298
+          modified: 1760384527933
+          isPrivate: false
+          description: ""
+          sortKey: -1758851919440.3125
+        method: POST
+        body:
+          mimeType: application/json
+          text: |
+            {
+            	"RunId": "{{ _.run_id_seed }}",
+            	"ActionType": "seed"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['dbt-port'] }}{{ _.path }}ready"
+        name: ready
+        meta:
+          id: req_20f4fbb8885b4e218ace93100008387b
+          created: 1760227802413
+          modified: 1760227807403
+          isPrivate: false
+          description: ""
+          sortKey: -1759081681122
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['dbt-port'] }}{{ _.path }}"
+        name: root
+        meta:
+          id: req_b379968f94d54b2caaff04ffff414f7d
+          created: 1760383514687
+          modified: 1760383519830
+          isPrivate: false
+          description: ""
+          sortKey: -1759081681272
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['dbt-port'] }}{{ _.path }}run/natal"
+        name: run-natal
+        meta:
+          id: req_8f13ba6294e1409fad401e32958967c9
+          created: 1760916713145
+          modified: 1760999426046
+          isPrivate: false
+          description: ""
+          sortKey: -1758775332179.75
+        method: POST
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |
+            const json = insomnia.response.json();
+            insomnia.collectionVariables.set("run_id_run" , json.RunId);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['dbt-port'] }}{{ _.path }}seed/test"
+        name: seed-test
+        meta:
+          id: req_44c837ffaf8d4d528d426c6ee59ac726
+          created: 1760999095249
+          modified: 1760999111701
+          isPrivate: false
+          description: ""
+          sortKey: -1758890213045.5938
+        method: POST
+        headers:
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        scripts:
+          afterResponse: |
+            const json = insomnia.response.json();
+            insomnia.collectionVariables.set("run_id_seed" , json.RunId);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['dbt-port'] }}{{ _.path }}results"
+        name: results-run-manual-id
+        meta:
+          id: req_3e60be05ae564d02bcf06df369bedaed
+          created: 1761334950690
+          modified: 1761336534933
+          isPrivate: false
+          description: ""
+          sortKey: -1758315808916.375
+        method: POST
+        body:
+          mimeType: application/json
+          text: |
+            {
+            	"RunId": "a2c95bbe-ae7e-4402-8ebd-5510076b7c37",
+            	"ActionType": "run"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.4.0
+          - name: X-Request-ID
+            value: " {{ _['x-request-id'].request_id }}"
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Location
+    meta:
+      id: fld_05f4e362a5824af5adedb80715a04af4
+      created: 1763904921596
+      modified: 1764042985773
+      sortKey: -1759081675630.375
+      description: ""
+    children:
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path
+          }}location/countries"
+        name: countries
+        meta:
+          id: req_69512f24bafc46ddb7a61828904f6b76
+          created: 1763904956992
+          modified: 1763918321611
+          isPrivate: false
+          description: ""
+          sortKey: -1763904956992
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/12.1.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path
+          }}location/counties/search"
+        name: counties
+        meta:
+          id: req_9a8dddc72c2b4198bb71c236faac3640
+          created: 1763918339881
+          modified: 1763920087494
+          isPrivate: false
+          description: ""
+          sortKey: -1761493319132
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"Country": "United States",
+            	"State": "Oregon"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.1.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path
+          }}location/states/search"
+        name: states
+        meta:
+          id: req_11a005d6b4bc4369996903da86716d29
+          created: 1763919341187
+          modified: 1763920085724
+          isPrivate: false
+          description: ""
+          sortKey: -1762699138062
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"Country": "United States"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.1.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path
+          }}location/cities/search"
+        name: cities
+        meta:
+          id: req_b270adb9a6c243a69e429d5ae424264a
+          created: 1763919646328
+          modified: 1763920170591
+          isPrivate: false
+          description: ""
+          sortKey: -1759684590737
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"Country": "United States",
+            	"State": "Oregon",
+            	"County": "Multnomah County"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.1.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}location/resolve"
+        name: location
+        meta:
+          id: req_86e718da6a3a4c3d8a30400fbf675457
+          created: 1763920481720
+          modified: 1764041380762
+          isPrivate: false
+          description: ""
+          sortKey: -1759383136004.5
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"Country": "United States",
+            	"State": "Oregon",
+            	"County": "Multnomah County",
+            	"City": "Portland"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.1.0
+            description: ""
+            disabled: false
+        scripts:
+          afterResponse: |-
+            const json = insomnia.response.json();
+
+
+            insomnia.test('Location Sumbits', () => {
+            		insomnia.expect(insomnia.response.code).to.not.have.any.keys(200);
+            });
+
+            insomnia.collectionVariables.set("location", json.LocationId);
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+  - name: Profile
+    meta:
+      id: fld_5ecfac6848b44fb39019e9cea89dbbcd
+      created: 1764030582773
+      modified: 1764030624368
+      sortKey: -1759081675627.25
+      description: ""
+    children:
+      - url: "{{ _.http }}{{ _.host }}{{ _['achat-port'] }}{{ _.path }}profile/create"
+        name: create
+        meta:
+          id: req_61fe68ba9b7143f9adfa95dd3b75b0ae
+          created: 1764030644710
+          modified: 1764041482772
+          isPrivate: false
+          description: ""
+          sortKey: -1764030651529
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+            	"LocationId": "{{ _.location }}",
+            	"Name": "Andrew",
+            	"BirthDateTime": "1972-11-06 15:35"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/12.1.0
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_5fae36886368427e92a76c91dcb02871
+    created: 1755228406099
+    modified: 1764042985769
+environments:
+  name: Base Environment
+  meta:
+    id: env_e41f782e10ed4024a66c3b1b0fb08f25
+    created: 1755228406003
+    modified: 1764042985772
+    isPrivate: false
+  data:
+    x-request-id:
+      request_id: "{% uuid 'v4' %}"
+    path: /api/v1/
+    run_id_seed: c353aa32-7607-433b-ba51-10b78e6d6e80
+    run_id_list_1: 000484362b51432dbb596e560914cca9
+    ops_ledger_id: a6a4a1128a034b5f943d0e41cb23975d
+    enq-mv-100: 829d3df9b54a407e8f21b45437fdf448
+    enq-mv-102: 5a3002e73c914e6ba7bb2ba3f3aa755b
+    enq-mv-103: 9b0a113b93264aa88fb5c3a34bbc0f43
+    enq-mv-1002: a0bd402fe34441749c3eab5277d94e19
+    admin2: a8c96eadaab94563a497ab3830a8c406
+    location: 3f3153b4-aa54-417b-a867-9b1e56877a2e
+  subEnvironments:
+    - name: local
+      meta:
+        id: env_10cc8468e3324e2aa0a61db423c38e2e
+        created: 1756496087816
+        modified: 1764042985771
+        isPrivate: false
+        sortKey: 1756496087816
+      data:
+        http: http://
+        host: "localhost:"
+        achat-port: "8080"
+        dbt-port: "8081"
